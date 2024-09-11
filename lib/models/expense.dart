@@ -1,5 +1,6 @@
 import 'package:isar/isar.dart';
 
+// to regenerate code: dart run build_runner build
 part 'expense.g.dart';
 
 @Collection()
