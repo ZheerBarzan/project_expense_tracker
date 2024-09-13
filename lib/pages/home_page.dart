@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:project_expense_tracker/database/expense_database.dart';
+import 'package:project_expense_tracker/helper/helper.dart';
 import 'package:project_expense_tracker/models/expense.dart';
 import 'package:provider/provider.dart';
 
@@ -57,7 +58,7 @@ class _HomePageState extends State<HomePage> {
                 Expense expnese = Expense(
                   name: _nameController.text,
                   amount: double.parse(_amountController.text),
-                  date: DateTime.now(),
+                  date: formatDate(DateTime.now()),
                 );
                 Provider.of<ExpenseDatabase>(context, listen: false);
 
