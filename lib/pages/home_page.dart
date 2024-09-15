@@ -84,6 +84,7 @@ class _HomePageState extends State<HomePage> {
     return Consumer<ExpenseDatabase>(
       builder: (context, value, child) => Scaffold(
         floatingActionButton: FloatingActionButton(
+          backgroundColor: Theme.of(context).colorScheme.surface,
           onPressed: _openNewExpenseBox,
           child: const Icon(Icons.add),
         ),
