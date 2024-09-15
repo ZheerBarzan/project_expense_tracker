@@ -15,13 +15,20 @@ class _HomePageState extends State<HomePage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
 
+  @override
+  void initState() {
+    Provider.of<ExpenseDatabase>(context, listen: false).readExpenses();
+    super.initState();
+  }
+
   // open new expense box
   void _openNewExpenseBox() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog.adaptive(
+      builder: (context) => AlertDialog(
         title: const Text("New Expense"),
         content: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: _nameController,
@@ -49,18 +56,18 @@ class _HomePageState extends State<HomePage> {
           ),
           MaterialButton(
             child: const Text("Add"),
-            onPressed: () {
+            onPressed: () async {
               // add to database
               if (_nameController.text.isNotEmpty &&
                   _amountController.text.isNotEmpty) {
                 Navigator.of(context).pop();
 
-                Expense expnese = Expense(
+                Expense expense = Expense(
                   name: _nameController.text,
-                  amount: double.parse(_amountController.text),
+                  amount: convertStringToDouble(_amountController.text),
                   date: formatDate(DateTime.now()),
                 );
-                Provider.of<ExpenseDatabase>(context, listen: false);
+                await context.read<ExpenseDatabase>().createExpense(expense);
 
                 _nameController.clear();
                 _amountController.clear();
@@ -74,10 +81,24 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        onPressed: _openNewExpenseBox,
-        child: const Icon(Icons.add),
+    return Consumer<ExpenseDatabase>(
+      builder: (context, value, child) => Scaffold(
+        floatingActionButton: FloatingActionButton(
+          onPressed: _openNewExpenseBox,
+          child: const Icon(Icons.add),
+        ),
+        body: ListView.builder(
+            itemCount: value.getExpenses.length,
+            itemBuilder: (context, index) {
+              Expense individualExpense = value.getExpenses[index];
+
+              return ListTile(
+                title: Text(individualExpense.name),
+                trailing: Text(
+                  individualExpense.amount.toString(),
+                ),
+              );
+            }),
       ),
     );
   }
