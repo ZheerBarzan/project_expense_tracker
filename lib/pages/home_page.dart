@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:project_expense_tracker/components/my_drawer.dart';
 import 'package:project_expense_tracker/database/expense_database.dart';
 import 'package:project_expense_tracker/helper/helper.dart';
 import 'package:project_expense_tracker/models/expense.dart';
@@ -83,8 +84,15 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Consumer<ExpenseDatabase>(
       builder: (context, value, child) => Scaffold(
-        floatingActionButton: FloatingActionButton(
+        appBar: AppBar(
+          title: const Text("Expense Tracker"),
+          centerTitle: true,
           backgroundColor: Theme.of(context).colorScheme.surface,
+          elevation: 0,
+        ),
+        drawer: const MyDrawer(),
+        floatingActionButton: FloatingActionButton(
+          backgroundColor: Theme.of(context).colorScheme.secondary,
           onPressed: _openNewExpenseBox,
           child: const Icon(Icons.add),
         ),
