@@ -104,7 +104,7 @@ class _HomePageState extends State<HomePage> {
               return ListTile(
                 title: Text(individualExpense.name),
                 trailing: Text(
-                  individualExpense.amount.toString(),
+                  formatAmount(individualExpense.amount),
                 ),
               );
             }),

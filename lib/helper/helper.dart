@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 String formatDate(DateTime timestamp) {
   DateTime dateTime = timestamp.toLocal();
 
@@ -13,4 +15,11 @@ String formatDate(DateTime timestamp) {
 double convertStringToDouble(String value) {
   double? result = double.tryParse(value);
   return result ?? 0.0;
+}
+
+String formatAmount(double amount) {
+  final format =
+      NumberFormat.currency(locale: 'en_US', symbol: '\$', decimalDigits: 2);
+
+  return format.format(amount);
 }
