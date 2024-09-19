@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:project_expense_tracker/components/my_drawer.dart';
+import 'package:project_expense_tracker/components/my_list_tile.dart';
 import 'package:project_expense_tracker/database/expense_database.dart';
 import 'package:project_expense_tracker/helper/helper.dart';
 import 'package:project_expense_tracker/models/expense.dart';
@@ -46,36 +47,50 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
         ),
-        actions: [
-          MaterialButton(
-            child: const Text("cancel"),
-            onPressed: () {
-              Navigator.of(context).pop();
-              _nameController.clear();
-              _amountController.clear();
-            },
-          ),
-          MaterialButton(
-            child: const Text("Add"),
-            onPressed: () async {
-              // add to database
-              if (_nameController.text.isNotEmpty &&
-                  _amountController.text.isNotEmpty) {
-                Navigator.of(context).pop();
+        actions: [_cancelButton(), _addButton()],
+      ),
+    );
+  }
 
-                Expense expense = Expense(
-                  name: _nameController.text,
-                  amount: convertStringToDouble(_amountController.text),
-                  date: formatDate(DateTime.now()),
-                );
-                await context.read<ExpenseDatabase>().createExpense(expense);
+  // edit expense
+  void _editExpense(Expense expense) async {
+    String existingName = expense.name;
+    String existingAmount = expense.amount.toString();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Edit Expense"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _nameController,
+              decoration: InputDecoration(
+                hintText: existingName,
+              ),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: _amountController,
+              decoration: InputDecoration(
+                hintText: existingAmount,
+              ),
+            ),
+          ],
+        ),
+        actions: [_cancelButton(), _editButton(expense)],
+      ),
+    );
+  }
 
-                _nameController.clear();
-                _amountController.clear();
-              }
-            },
-          ),
-        ],
+  // delete expense
+  void _deleteExpense(Expense expense) async {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Are you sure?"),
+        content: Text("The expense ${expense.name} will be deleted."),
+        actions: [_cancelButton(), _deleteButton(expense)],
       ),
     );
   }
@@ -101,14 +116,95 @@ class _HomePageState extends State<HomePage> {
             itemBuilder: (context, index) {
               Expense individualExpense = value.getExpenses[index];
 
-              return ListTile(
-                title: Text(individualExpense.name),
-                trailing: Text(
-                  formatAmount(individualExpense.amount),
-                ),
+              return MyListTile(
+                title: individualExpense.name,
+                trailing: formatAmount(individualExpense.amount),
+                onEditPressed: (context) => _editExpense(individualExpense),
+                onDeletePressed: (context) => _deleteExpense(individualExpense),
               );
             }),
       ),
+    );
+  }
+
+  Widget _cancelButton() {
+    return MaterialButton(
+      child: const Text("cancel"),
+      onPressed: () {
+        Navigator.of(context).pop();
+        _nameController.clear();
+        _amountController.clear();
+      },
+    );
+  }
+
+  Widget _addButton() {
+    return MaterialButton(
+      child: const Text("Add"),
+      onPressed: () async {
+        // add to database
+        if (_nameController.text.isNotEmpty &&
+            _amountController.text.isNotEmpty) {
+          Navigator.of(context).pop();
+
+          Expense expense = Expense(
+            name: _nameController.text,
+            amount: convertStringToDouble(_amountController.text),
+            date: formatDate(DateTime.now()),
+          );
+          await context.read<ExpenseDatabase>().createExpense(expense);
+
+          _nameController.clear();
+          _amountController.clear();
+        }
+      },
+    );
+  }
+
+  Widget _editButton(Expense expense) {
+    return MaterialButton(
+      child: const Text("Save"),
+      onPressed: () async {
+        // add to database
+        if (_nameController.text.isNotEmpty ||
+            _amountController.text.isNotEmpty) {
+          Navigator.of(context).pop();
+
+          Expense updatedExpense = Expense(
+            name: _nameController.text.isNotEmpty
+                ? _nameController.text
+                : expense.name,
+            amount: _amountController.text.isNotEmpty
+                ? convertStringToDouble(_amountController.text)
+                : convertStringToDouble(expense.amount.toString()),
+            date: formatDate(DateTime.now()),
+          );
+
+          int id = expense.id;
+
+          await context
+              .read<ExpenseDatabase>()
+              .updateExpense(id, updatedExpense);
+
+          _nameController.clear();
+          _amountController.clear();
+        }
+      },
+    );
+  }
+
+  Widget _deleteButton(Expense expense) {
+    return MaterialButton(
+      child: const Text("Delete"),
+      onPressed: () async {
+        // add to database
+
+        Navigator.of(context).pop();
+
+        int id = expense.id;
+
+        await context.read<ExpenseDatabase>().deleteExpense(id);
+      },
     );
   }
 }
