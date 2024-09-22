@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:project_expense_tracker/bar_graph/bar_graph.dart';
 import 'package:project_expense_tracker/components/my_drawer.dart';
 import 'package:project_expense_tracker/components/my_list_tile.dart';
 import 'package:project_expense_tracker/database/expense_database.dart';
@@ -17,10 +18,18 @@ class _HomePageState extends State<HomePage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
 
+  Future<Map<int, double>>? _monthlyTotalFuture;
+
   @override
   void initState() {
     Provider.of<ExpenseDatabase>(context, listen: false).readExpenses();
+    refreshGraphData();
     super.initState();
+  }
+
+  void refreshGraphData() {
+    _monthlyTotalFuture = Provider.of<ExpenseDatabase>(context, listen: false)
+        .calculateTotalExpensesByMonth();
   }
 
   // open new expense box
@@ -98,32 +107,74 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Consumer<ExpenseDatabase>(
-      builder: (context, value, child) => Scaffold(
-        appBar: AppBar(
-          title: const Text("Expense Tracker"),
-          centerTitle: true,
-          backgroundColor: Theme.of(context).colorScheme.surface,
-          elevation: 0,
-        ),
-        drawer: const MyDrawer(),
-        floatingActionButton: FloatingActionButton(
-          backgroundColor: Theme.of(context).colorScheme.secondary,
-          onPressed: _openNewExpenseBox,
-          child: const Icon(Icons.add),
-        ),
-        body: ListView.builder(
-            itemCount: value.getExpenses.length,
-            itemBuilder: (context, index) {
-              Expense individualExpense = value.getExpenses[index];
+      builder: (context, value, child) {
+        int startMonth = value.getStartMonth();
+        int startYear = value.getStartYear();
+        int currentMonth = DateTime.now().month;
+        int currentYear = DateTime.now().year;
 
-              return MyListTile(
-                title: individualExpense.name,
-                trailing: formatAmount(individualExpense.amount),
-                onEditPressed: (context) => _editExpense(individualExpense),
-                onDeletePressed: (context) => _deleteExpense(individualExpense),
-              );
-            }),
-      ),
+        int monthCount = calculateMonthCount(
+            startYear, startMonth, currentYear, currentMonth);
+
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text("Expense Tracker"),
+            centerTitle: true,
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            elevation: 0,
+          ),
+          drawer: const MyDrawer(),
+          floatingActionButton: FloatingActionButton(
+            backgroundColor: Theme.of(context).colorScheme.secondary,
+            onPressed: _openNewExpenseBox,
+            child: const Icon(Icons.add),
+          ),
+          body: SafeArea(
+            child: Column(children: [
+              const SizedBox(height: 20),
+              // graph ui
+              SizedBox(
+                height: 250,
+                child: FutureBuilder(
+                  future: _monthlyTotalFuture,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.done) {
+                      final monthlyTotals = snapshot.data ?? {};
+
+                      List<double> monthlySummery = List.generate(monthCount,
+                          (index) => monthlyTotals[startMonth + index] ?? 0.0);
+
+                      return MyBarGraph(
+                          monthlySummery: monthlySummery,
+                          startMonth: startMonth);
+                    } else {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                  },
+                ),
+              ),
+
+              // expense ui
+              Expanded(
+                child: ListView.builder(
+                    itemCount: value.getExpenses.length,
+                    itemBuilder: (context, index) {
+                      Expense individualExpense = value.getExpenses[index];
+
+                      return MyListTile(
+                        title: individualExpense.name,
+                        trailing: formatAmount(individualExpense.amount),
+                        onEditPressed: (context) =>
+                            _editExpense(individualExpense),
+                        onDeletePressed: (context) =>
+                            _deleteExpense(individualExpense),
+                      );
+                    }),
+              ),
+            ]),
+          ),
+        );
+      },
     );
   }
 
@@ -150,7 +201,7 @@ class _HomePageState extends State<HomePage> {
           Expense expense = Expense(
             name: _nameController.text,
             amount: convertStringToDouble(_amountController.text),
-            date: formatDate(DateTime.now()),
+            date: DateTime.now(),
           );
           await context.read<ExpenseDatabase>().createExpense(expense);
 
@@ -177,7 +228,7 @@ class _HomePageState extends State<HomePage> {
             amount: _amountController.text.isNotEmpty
                 ? convertStringToDouble(_amountController.text)
                 : convertStringToDouble(expense.amount.toString()),
-            date: formatDate(DateTime.now()),
+            date: expense.date,
           );
 
           int id = expense.id;

@@ -8,7 +8,7 @@ class Expense {
   Id id = Isar.autoIncrement;
   final String name;
   final double amount;
-  final String date;
+  final DateTime date;
 
   Expense({required this.name, required this.amount, required this.date});
 }
