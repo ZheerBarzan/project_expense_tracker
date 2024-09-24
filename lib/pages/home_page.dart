@@ -116,6 +116,13 @@ class _HomePageState extends State<HomePage> {
         int monthCount = calculateMonthCount(
             startYear, startMonth, currentYear, currentMonth);
 
+        // to be deleted maybe
+        List<Expense> currentMonthlyExpenses =
+            value.getExpenses.where((expense) {
+          return expense.date.year == currentYear &&
+              expense.date.month == currentMonth;
+        }).toList();
+
         return Scaffold(
           appBar: AppBar(
             title: const Text("Expense Tracker"),
@@ -158,8 +165,13 @@ class _HomePageState extends State<HomePage> {
               Expanded(
                 child: ListView.builder(
                     itemCount: value.getExpenses.length,
+                    //itemCount: currentMonthlyExpenses.length,
                     itemBuilder: (context, index) {
-                      Expense individualExpense = value.getExpenses[index];
+                      //int reversedIndex = currentMonthlyExpenses.length - 1 - index;
+                      int reversedIndex = value.getExpenses.length - 1 - index;
+                      Expense individualExpense =
+                          //currentMonthlyExpenses[reversedIndex];
+                          value.getExpenses[reversedIndex];
 
                       return MyListTile(
                         title: individualExpense.name,

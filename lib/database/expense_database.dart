@@ -100,6 +100,25 @@ class ExpenseDatabase extends ChangeNotifier {
     return _expenses.first.date.month;
   }
 
+  // current month total
+  Future<double> getCurrentMonthTotal() async {
+    await readExpenses();
+
+    int currentMonth = DateTime.now().month;
+    int currentYear = DateTime.now().year;
+    List<Expense> currentMonthlyExpenses = getExpenses.where((expense) {
+      return expense.date.year == currentYear &&
+          expense.date.month == currentMonth;
+    }).toList();
+
+    double total = currentMonthlyExpenses.fold(
+      0.0,
+      (sum, expense) => sum + expense.amount,
+    );
+
+    return total;
+  }
+
   // get start year
   int getStartYear() {
     if (_expenses.isEmpty) {
