@@ -146,7 +146,7 @@ class _HomePageState extends State<HomePage> {
 
                       return MyBarGraph(
                           monthlySummery: monthlySummery,
-                          startMonth: startMonth);
+                          startMonth: startMonth + 1);
                     } else {
                       return const Center(child: CircularProgressIndicator());
                     }
@@ -205,6 +205,8 @@ class _HomePageState extends State<HomePage> {
           );
           await context.read<ExpenseDatabase>().createExpense(expense);
 
+          refreshGraphData();
+
           _nameController.clear();
           _amountController.clear();
         }
@@ -236,6 +238,7 @@ class _HomePageState extends State<HomePage> {
           await context
               .read<ExpenseDatabase>()
               .updateExpense(id, updatedExpense);
+          refreshGraphData();
 
           _nameController.clear();
           _amountController.clear();
@@ -255,6 +258,7 @@ class _HomePageState extends State<HomePage> {
         int id = expense.id;
 
         await context.read<ExpenseDatabase>().deleteExpense(id);
+        refreshGraphData();
       },
     );
   }

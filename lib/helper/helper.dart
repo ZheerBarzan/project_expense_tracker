@@ -24,6 +24,7 @@ String formatAmount(double amount) {
   return format.format(amount);
 }
 
+// fix
 int calculateMonthCount(
     int startYear, int startMonth, int currentYear, int currentMonth) {
   int monthCount = (currentYear - startYear) * 12 + (currentMonth - startMonth);
