@@ -18,7 +18,8 @@ class _HomePageState extends State<HomePage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
 
-  Future<Map<int, double>>? _monthlyTotalFuture;
+  Future<Map<String, double>>? _monthlyTotalFuture;
+  Future<double>? _calculateCurrentMonthTotal;
 
   @override
   void initState() {
@@ -30,6 +31,10 @@ class _HomePageState extends State<HomePage> {
   void refreshGraphData() {
     _monthlyTotalFuture = Provider.of<ExpenseDatabase>(context, listen: false)
         .calculateTotalExpensesByMonth();
+
+    _calculateCurrentMonthTotal =
+        Provider.of<ExpenseDatabase>(context, listen: false)
+            .getCurrentMonthTotal();
   }
 
   // open new expense box
@@ -138,6 +143,22 @@ class _HomePageState extends State<HomePage> {
           ),
           body: SafeArea(
             child: Column(children: [
+              FutureBuilder<double>(
+                  future: _calculateCurrentMonthTotal,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.done) {
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(getCurrentMonthName()),
+                          Text(
+                              " Total: \$${snapshot.data!.toStringAsFixed(2)}"),
+                        ],
+                      );
+                    } else {
+                      return const Text("Total: loading...");
+                    }
+                  }),
               const SizedBox(height: 20),
               // graph ui
               SizedBox(
@@ -146,10 +167,17 @@ class _HomePageState extends State<HomePage> {
                   future: _monthlyTotalFuture,
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.done) {
-                      final monthlyTotals = snapshot.data ?? {};
+                      Map<String, double> monthlyTotals = snapshot.data ?? {};
 
-                      List<double> monthlySummery = List.generate(monthCount,
-                          (index) => monthlyTotals[startMonth + index] ?? 0.0);
+                      List<double> monthlySummery =
+                          List.generate(monthCount, (index) {
+                        int year = startYear + (startMonth + index - 1) ~/ 12;
+                        int month = (startMonth + index - 1) % 12 + 1;
+
+                        String yearMonthKey = "$year-$month";
+
+                        return monthlyTotals[yearMonthKey] ?? 0.0;
+                      });
 
                       return MyBarGraph(
                           monthlySummery: monthlySummery,

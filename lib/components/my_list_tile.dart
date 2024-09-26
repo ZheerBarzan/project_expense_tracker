@@ -15,29 +15,38 @@ class MyListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Slidable(
-      endActionPane: ActionPane(
-        motion: const StretchMotion(),
-        children: [
-          SlidableAction(
-            onPressed: onEditPressed,
-            icon: Icons.edit,
-            backgroundColor: Theme.of(context).colorScheme.secondary,
-            foregroundColor: Theme.of(context).colorScheme.surface,
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Slidable(
+        endActionPane: ActionPane(
+          motion: const StretchMotion(),
+          children: [
+            SlidableAction(
+              onPressed: onEditPressed,
+              icon: Icons.edit,
+              backgroundColor: Theme.of(context).colorScheme.secondary,
+              foregroundColor: Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(4),
+            ),
+            SlidableAction(
+              onPressed: onDeletePressed,
+              icon: Icons.delete,
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ],
+        ),
+        child: Container(
+          decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(4),
+            color: Theme.of(context).colorScheme.tertiary,
           ),
-          SlidableAction(
-            onPressed: onDeletePressed,
-            icon: Icons.delete,
-            backgroundColor: Theme.of(context).colorScheme.error,
-            foregroundColor: Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.circular(4),
+          child: ListTile(
+            title: Text(title),
+            trailing: Text(trailing),
           ),
-        ],
-      ),
-      child: ListTile(
-        title: Text(title),
-        trailing: Text(trailing),
+        ),
       ),
     );
   }
