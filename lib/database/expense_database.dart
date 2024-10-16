@@ -6,7 +6,7 @@ import 'package:project_expense_tracker/models/expense.dart';
 class ExpenseDatabase extends ChangeNotifier {
   static late Isar isar;
 
-  List<Expense> _expenses = [];
+  final List<Expense> _expenses = [];
 
   // setup
 
